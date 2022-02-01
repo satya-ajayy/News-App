@@ -17,12 +17,12 @@ def GetNews():
     return data
 
 
+# @app.route('/')
+# def StartPage():
+#     return render_template('StartPage.html')
+
+
 @app.route('/')
-def StartPage():
-    return render_template('StartPage.html')
-
-
-@app.route('/News')
 def Home():
     return render_template('NewsPage.html', news_data=GetNews())
 
