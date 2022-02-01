@@ -13,16 +13,15 @@ def GetNews():
     for article in articles:
         if article['description'] is not None:
             data.append(article)
-    print(data)
     return data
 
 
-# @app.route('/')
-# def StartPage():
-#     return render_template('StartPage.html')
-
-
 @app.route('/')
+def StartPage():
+    return render_template('StartPage.html')
+
+
+@app.route('/News')
 def Home():
     return render_template('NewsPage.html', news_data=GetNews())
 
