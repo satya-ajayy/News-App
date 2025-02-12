@@ -39,7 +39,7 @@ def getLastMonthDate(return_str=True):
 
 
 def fetchNews(search, date):
-    api_key = 'a6bf40d19c94490c970d85a01f6ea2d1'
+    api_key = os.getenv("API_KEY")
     url = f'https://newsapi.org/v2/everything?q={search}&from={date}&sortBy=publishedAt&apiKey={api_key}'
     print(url)
     data = requests.get(url).json()
