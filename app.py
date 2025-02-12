@@ -1,30 +1,65 @@
 import requests
-from flask import Flask, render_template
+from datetime import datetime
+import calendar
+import pytz
+from flask import Flask, render_template, request
+
 app = Flask(__name__)
+HTML = 'index.html'
+
+def filterArticles(articles):
+    required_keys = {"title", "author", "publishedAt", "urlToImage", "description", "url", "source"}
+
+    filtered_articles = [
+        article for article in articles
+        if all(article.get(key) not in [None, ""] for key in required_keys)
+        and isinstance(article.get("source"), dict)
+        and article["source"].get("name") not in [None, ""]
+        # and article["source"].get("id") not in [None, ""]
+    ]
+
+    return filtered_articles
 
 
-def GetNews():
+def getLastMonthDate(return_str=True):
+    ist = pytz.timezone("Asia/Kolkata")
+    today = datetime.now(ist)
+    year, month = today.year, today.month
+
+    if month == 1:
+        year -= 1
+        month = 12
+    else:
+        month -= 1
+
+    last_day = calendar.monthrange(year, month)[1]
+    day = min(today.day, last_day)
+    result_date = datetime(year, month, day, tzinfo=ist)
+    return result_date.strftime("%Y-%m-%d") if return_str else result_date
+
+
+def fetchNews(search, date):
     api_key = 'a6bf40d19c94490c970d85a01f6ea2d1'
-    url = 'https://newsapi.org/v2/top-headlines?country=in&apikey='+api_key
-    html_data = requests.get(url)
-    json_data = html_data.json()
-    articles = json_data['articles']
-    data = []
-    for article in articles:
-        if article['description'] is not None:
-            data.append(article)
-    return data
+    url = f'https://newsapi.org/v2/everything?q={search}&from={date}&sortBy=publishedAt&apiKey={api_key}'
+    print(url)
+    data = requests.get(url).json()
+    if data['status'] == 'ok' and 'articles' in data:
+        return filterArticles(data['articles'])
+    else:
+        return []
 
 
-@app.route('/')
-def StartPage():
-    return render_template('StartPage.html')
+@app.route('/', methods=['GET'])
+def homePage():
+    return render_template(HTML, articles=[])
 
 
-@app.route('/News')
-def Home():
-    return render_template('NewsPage.html', news_data=GetNews())
+@app.route('/search', methods=['POST'])
+def searchResults():
+    query = request.form.get('query').lower()
+    date = getLastMonthDate(return_str=True)
+    return render_template(HTML, articles=fetchNews(query, date))
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(debug=True)
