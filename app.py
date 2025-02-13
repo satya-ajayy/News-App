@@ -16,7 +16,6 @@ def filterArticles(articles):
         if all(article.get(key) not in [None, ""] for key in required_keys)
         and isinstance(article.get("source"), dict)
         and article["source"].get("name") not in [None, ""]
-        # and article["source"].get("id") not in [None, ""]
     ]
 
     return filtered_articles
